@@ -70,3 +70,28 @@ for name, values in dataset_df_reduced_rows.iteritems():
             break
     print(len(tab))
     dict_init[name] = tab
+
+###################################################################
+########################### Entrainement ##########################
+###################################################################
+
+# print(dataset_copy)
+# print(dict_init)
+
+############################ simple
+
+X_train, X_test, y_train, y_test = train_test_split(
+    dataset_df_reduced_rows.drop(columns=['target']), dataset_df_reduced_rows['target'], random_state=0)
+
+# lr = LinearRegression().fit(X_train,y_train)
+lr = MLPRegressor(random_state=1, max_iter=500).fit(X_train, y_train)
+
+# print("Training set score: {:.2f}".format(lr.score(X_train,y_train)))
+# print("Test set score: {:.2f}".format(lr.score(X_test,y_test)))
+
+############################# plus complexe
+
+from sklearn.model_selection import cross_val_score
+# scores = cross_val_score(lr, X_test, y_test, cv=20)
+# print(scores)
+print(lr.score(X_test, y_test))
