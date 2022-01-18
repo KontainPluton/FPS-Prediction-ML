@@ -9,8 +9,10 @@ import sklearn
 from IPython.display import display
 
 from sklearn.datasets import fetch_openml
-
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LinearRegression
+from sklearn.neural_network import MLPRegressor
 
 ###################################################################
 ########## Charge le dataset dans la variable dataset #############
@@ -91,7 +93,6 @@ lr = MLPRegressor(random_state=1, max_iter=500).fit(X_train, y_train)
 
 ############################# plus complexe
 
-from sklearn.model_selection import cross_val_score
 # scores = cross_val_score(lr, X_test, y_test, cv=20)
 # print(scores)
 print(lr.score(X_test, y_test))
