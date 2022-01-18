@@ -13,7 +13,7 @@ from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 
 ###################################################################
-############ Charge le dataset dans la variable .. ################
+########## Charge le dataset dans la variable dataset #############
 ###################################################################
 
 ### Import du dataset depuis OpenML (lien du dataset : https://www.openml.org/d/42737)
@@ -38,7 +38,7 @@ print(dataset_df_reduced_rows.transpose())
 ########### Compte le nombre de NaN dans le dataset ###############
 ###################################################################
 
-bc_df = pd.DataFrame(df.data, columns=df.feature_names)
+bc_df = pd.DataFrame(dataset.data, columns=dataset.feature_names)
 
 tab = []
 j = 0
