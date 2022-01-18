@@ -48,3 +48,25 @@ for feature in bc_df.columns:
 
 print(bc_df.isna().sum().sum())
 print(tab)
+
+###################################################################
+#### Fait correspondre les éléments texte du dataset en entier ####
+###################################################################
+
+dataset_copy = dataset_df_reduced_rows
+dict_init = {}
+for name, values in dataset_df_reduced_rows.iteritems():
+    compt = 0
+    tab = {}
+    for i in range(values.size):
+        if isinstance(dataset_copy[name][i], str):
+            if dataset_copy[name][i] not in tab:
+                tab[dataset_copy[name][i]] = compt
+                dataset_copy[name][i] = compt
+                compt += 1
+            else:
+                dataset_copy[name][i] = tab[dataset_copy[name][i]]
+        else:
+            break
+    print(len(tab))
+    dict_init[name] = tab
