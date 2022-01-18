@@ -16,25 +16,23 @@ from sklearn.model_selection import train_test_split
 ############ Charge le dataset dans la variable .. ################
 ###################################################################
 
-df = sklearn.datasets.fetch_openml(name="fps-in-video-games")
+### Import du dataset depuis OpenML (lien du dataset : https://www.openml.org/d/42737)
+
+dataset = sklearn.datasets.fetch_openml(name="fps-in-video-games")
 
 ###################################################################
 # Effectue un traitement sur un DataFrame crée à partir du dataset#
 ###################################################################
 
-bc_df = pd.DataFrame(df.data, columns=df.feature_names)
+dataset_df = pd.DataFrame(data=np.c_[dataset.data,dataset.target], columns=dataset.feature_names+['target'])
 
-bc_df_reduced = bc_df.dropna(axis='columns')
+dataset_df_reduced = dataset_df.dropna(axis='columns')
 
-bc_df_reduced_rows = bc_df.drop(columns=['GpuNumberOfExecutionUnits']).dropna()
+dataset_df_reduced_rows = dataset_df.drop(columns=['GpuNumberOfExecutionUnits','CpuCacheL3']).dropna()
 
-#print("X_train shape: {}".format(bc_df['GpuMemoryBus'][59]))
+dataset_df_reduced_rows_pivot = dataset_df_reduced_rows.pivot_table(columns=['GameName'], aggfunc='size')
 
-#print(bc_df.columns)
-#print(bc_df_reduced.columns)
-
-dups_color = bc_df_reduced_rows.pivot_table(columns=['GameName'], aggfunc='size')
-print (dups_color)
+print(dataset_df_reduced_rows.transpose())
 
 ###################################################################
 ########### Compte le nombre de NaN dans le dataset ###############
