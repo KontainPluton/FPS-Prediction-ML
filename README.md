@@ -1,4 +1,4 @@
-# FPS-Prediction-ML
+# FPS-Prediction : Machine Learning Project
 
 ![Language](https://shield.lylium.fr/github/languages/top/KontainPluton/FPS-Prediction-ML?color=F37626&logo=jupyter&logoColor=F37626&labelColor=gray&style=for-the-badge)
 ![Python](https://shield.lylium.fr/badge/Python-v3.10.2-FFD43B?logo=python&logoColor=white&style=for-the-badge&labelColor=306998)
