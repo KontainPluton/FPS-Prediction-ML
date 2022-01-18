@@ -18,7 +18,7 @@ from sklearn.neural_network import MLPRegressor
 ########## Charge le dataset dans la variable dataset #############
 ###################################################################
 
-### Import du dataset depuis OpenML (lien du dataset : https://www.openml.org/d/42737)
+# Import du dataset depuis OpenML (lien du dataset : https://www.openml.org/d/42737)
 
 dataset = sklearn.datasets.fetch_openml(name="fps-in-video-games")
 
@@ -26,15 +26,21 @@ dataset = sklearn.datasets.fetch_openml(name="fps-in-video-games")
 # Effectue un traitement sur un DataFrame crée à partir du dataset#
 ###################################################################
 
-dataset_df = pd.DataFrame(data=np.c_[dataset.data,dataset.target], columns=dataset.feature_names+['target'])
+dataset_df = pd.DataFrame(
+    data=np.c_[dataset.data, dataset.target], columns=dataset.feature_names+['target'])
 
 dataset_df_reduced = dataset_df.dropna(axis='columns')
 
-dataset_df_reduced_rows = dataset_df.drop(columns=['GpuNumberOfExecutionUnits','CpuCacheL3']).dropna()
+dataset_df_reduced_rows = dataset_df.drop(
+    columns=['GpuNumberOfExecutionUnits', 'GpuNumberOfComputeUnits', 'CpuNumberOfTransistors', 'CpuDieSize', 'CpuCacheL3', 'Dataset']).dropna().reset_index().drop(columns=['index'])
 
-dataset_df_reduced_rows_pivot = dataset_df_reduced_rows.pivot_table(columns=['GameName'], aggfunc='size')
+dataset_df_reduced_rows = dataset_df_reduced_rows.drop_duplicates(
+    subset=dataset_df_reduced_rows.columns.difference(['target']))
 
-print(dataset_df_reduced_rows.transpose())
+dataset_df_reduced_rows_pivot = dataset_df_reduced_rows.pivot_table(
+    columns=['GameName'], aggfunc='size')
+
+print("Nombre de jeux : ", dataset_df_reduced_rows_pivot)
 
 ###################################################################
 ########### Compte le nombre de NaN dans le dataset ###############
@@ -80,7 +86,7 @@ for name, values in dataset_df_reduced_rows.iteritems():
 # print(dataset_copy)
 # print(dict_init)
 
-############################ simple
+# simple
 
 X_train, X_test, y_train, y_test = train_test_split(
     dataset_df_reduced_rows.drop(columns=['target']), dataset_df_reduced_rows['target'], random_state=0)
@@ -91,7 +97,7 @@ lr = MLPRegressor(random_state=1, max_iter=500).fit(X_train, y_train)
 # print("Training set score: {:.2f}".format(lr.score(X_train,y_train)))
 # print("Test set score: {:.2f}".format(lr.score(X_test,y_test)))
 
-############################# plus complexe
+# plus complexe
 
 # scores = cross_val_score(lr, X_test, y_test, cv=20)
 # print(scores)
