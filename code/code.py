@@ -17,6 +17,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from math import trunc
 from sklearn import tree
+from sklearn.linear_model import Ridge
 
 ###################################################################
 ########## Charge le dataset dans la variable dataset #############
@@ -65,31 +66,33 @@ print(tab)
 #### Fait correspondre les éléments texte du dataset en entier ####
 ###################################################################
 
-dataset_copy = dataset_df_reduced_rows
-dict_init = {}
+dataset_reduced_without_string = dataset_df_reduced_rows.copy()
+dict_game = {}
 for name, values in dataset_df_reduced_rows.iteritems():
     compt = 0
     tab = {}
     for i in range(values.size):
-        if isinstance(dataset_copy[name][i], str):
-            if dataset_copy[name][i] not in tab:
-                tab[dataset_copy[name][i]] = compt
-                dataset_copy[name][i] = compt
+        if isinstance(dataset_reduced_without_string[name][i], str):
+            if dataset_reduced_without_string[name][i] not in tab:
+                tab[dataset_reduced_without_string[name][i]] = compt
+                dataset_reduced_without_string[name][i] = compt
+                if name == 'GameName':
+                    dict_game[name] = compt
                 compt += 1
             else:
-                dataset_copy[name][i] = tab[dataset_copy[name][i]]
+                dataset_reduced_without_string[name][i] = tab[dataset_reduced_without_string[name][i]]
         else:
             break
     print(len(tab))
-    dict_init[name] = tab
 
 ###################################################################
 ########################### Entrainement ##########################
 ###################################################################
 
-dataset_df_reduced_rows = dataset_df_reduced_rows.sample(random_state=0, n=dataset_df_reduced_rows.shape[0])
-X = dataset_df_reduced_rows.drop(columns=['target'])
-y = dataset_df_reduced_rows['target']
+dataset_copy = dataset_reduced_without_string.copy()
+dataset_copy = dataset_copy.sample(random_state=0, n=dataset_copy.shape[0])
+X = dataset_copy.drop(columns=['target'])
+y = dataset_copy['target']
 
 #print(X.info())
 
@@ -132,7 +135,7 @@ print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scor
 # pas de l'intervale des fps. Ex : si pas = 10, alors de 0 à 10 fps, y deviendra 0, de 11 à 20, y deviendra 1
 pas = 10
 
-dataset_copy = dataset_df_reduced_rows.copy()
+dataset_copy = dataset_reduced_without_string.copy()
 
 print(dataset_copy['target'])
 
@@ -162,3 +165,22 @@ test_score_c = clf.score(X_test_c, y_test_c)
 
 print("Training set score: {:.2f} ".format(train_score_c))
 print("Test set score: {:.2f} ".format(test_score_c))
+
+##################################################################
+############## Essai d'utiliser seulement un jeu #################
+##################################################################
+
+dataset_copy = dataset_reduced_without_string.copy()
+dataset_reduced_without_string = dataset_reduced_without_string[dataset_reduced_without_string['GameName'] == dict_game['counterStrikeGlobalOffensive']]
+dataset_reduced_without_string = dataset_reduced_without_string.reset_index().drop(columns=['index'])
+
+print(dataset_copy)
+
+dataset_copy = dataset_copy.sample(random_state=0, n=dataset_copy.shape[0])
+X = dataset_copy.drop(columns=['target'])
+y = dataset_copy['target']
+pipeline = Pipeline([('transformer', scalar), ('estimator', LinearRegression())])
+
+scores = cross_val_score(pipeline, X, y, cv=20)
+print(scores)
+print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
