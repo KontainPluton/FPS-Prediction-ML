@@ -18,6 +18,7 @@ from sklearn.linear_model import LogisticRegression
 from math import trunc
 from sklearn import tree
 from sklearn.linear_model import Ridge
+from sklearn.svm import SVC
 
 ###################################################################
 ########## Charge le dataset dans la variable dataset #############
@@ -124,6 +125,9 @@ print("Test set score: {:.2f}".format(lr.score(X_test,y_test)))
 
 # plus complexe
 
+X = dataset_copy.drop(columns=['target'])
+y = dataset_copy['target']
+
 pipeline = Pipeline([('transformer', scalar), ('estimator', LinearRegression())])
 
 scores = cross_val_score(pipeline, X, y, cv=20)
@@ -131,15 +135,21 @@ print(scores)
 print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
 # print(lr.score(X_test, y_test))
 
+X = dataset_copy.drop(columns=['target'])
+y = dataset_copy['target']
+
 pipeline = Pipeline([('transformer', scalar), ('estimator', Ridge(alpha=1.0))])
 
 scores = cross_val_score(pipeline, X, y, cv=20)
 print(scores)
 print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
 
-#clf = svm.SVC(kernel='linear', C=1, random_state=42)
-#scores = cross_val_score(clf, X, y, cv=5)
-#print(scores)
+X = dataset_copy.drop(columns=['target'])
+y = dataset_copy['target']
+
+clf = SVC(kernel='linear', C=1, random_state=42)
+scores = cross_val_score(clf, X, y, cv=5)
+print(scores)
 
 ###################################################################
 ###### Traitement pour passer le problème en classification #######
@@ -158,13 +168,16 @@ dataset_for_clasification = dataset_for_clasification.astype({'target': 'int32'}
 ####### Application arbre décision / régression logistique #######
 ##################################################################
 
-X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(dataset_copy.drop(columns=['target']), dataset_copy['target'], test_size=0.33)
+###### Arbre
+X = dataset_for_clasification.drop(columns=['target'])
+y = dataset_for_clasification['target']
+
+X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X, y, test_size=0.33)
 
 scalar = StandardScaler()
 X_train_c = scalar.fit_transform(X_train_c)
 X_test_c = scalar.fit_transform(X_test_c)
 
-# clf = LogisticRegression(solver='lbfgs', max_iter=2000)
 clf = tree.DecisionTreeClassifier(random_state=0, max_depth=11)
 
 clf.fit(X_train_c, y_train_c)
@@ -175,8 +188,25 @@ test_score_c = clf.score(X_test_c, y_test_c)
 print("Training set score: {:.2f} ".format(train_score_c))
 print("Test set score: {:.2f} ".format(test_score_c))
 
+##### Régression logistique
+
+X = dataset_for_clasification.drop(columns=['target'])
+y = dataset_for_clasification['target']
+
+X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X, y, test_size=0.33)
+
+clf = LogisticRegression(solver='lbfgs', max_iter=2000)
+
+clf.fit(X_train_c, y_train_c)
+
+train_score_c = clf.score(X_train_c, y_train_c)
+test_score_c = clf.score(X_test_c, y_test_c)
+
+print("Training set score: {:.2f} ".format(train_score_c))
+print("Test set score: {:.2f} ".format(test_score_c))
+
 ##################################################################
-############## Essai d'utiliser seulement un jeu #################
+######### Essai d'utiliser seulement un jeu régression ###########
 ##################################################################
 
 for gameName in dict_global['GameName']:
@@ -192,3 +222,29 @@ for gameName in dict_global['GameName']:
     # Uncomment to see the score
     # print(scores)
     print("%0.2f de moyenne avec un écart-type de %0.2f" % (scores.mean(), scores.std()))
+
+##################################################################
+####### Essai d'utiliser seulement un jeu classification #########
+##################################################################
+
+for gameName in dict_global['GameName']:
+    dataset_copy = dataset_for_clasification.copy()
+    print("Jeu : " + gameName)
+    dataset_copy = dataset_copy[dataset_copy['GameName'] == dict_global['GameName'][gameName]]
+    dataset_copy = dataset_copy.sample(random_state=0, n=dataset_copy.shape[0])
+    X = dataset_copy.drop(columns=['target'])
+    y = dataset_copy['target']
+
+    clf = LogisticRegression(solver='lbfgs', max_iter=1000)
+
+    scalar = StandardScaler()
+    X_train = scalar.fit_transform(X_train)
+    X_test = scalar.fit_transform(X_test)
+
+    clf.fit(X_train_c, y_train_c)
+
+    train_score_c = clf.score(X_train_c, y_train_c)
+    test_score_c = clf.score(X_test_c, y_test_c)
+
+    print("Training set score: {:.2f} ".format(train_score_c))
+    print("Test set score: {:.2f} ".format(test_score_c))
