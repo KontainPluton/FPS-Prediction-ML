@@ -66,8 +66,10 @@ print(tab)
 #### Fait correspondre les éléments texte du dataset en entier ####
 ###################################################################
 
+### Algorithme parcourant le dataset et remplaçant les valeurs de type string, par un int (le tout en stockant les correspondances dans un dictionnaire)
+
 dataset_reduced_without_string = dataset_df_reduced_rows.copy()
-dict_game = {}
+dict_global = {}
 for name, values in dataset_df_reduced_rows.iteritems():
     compt = 0
     tab = {}
@@ -76,14 +78,25 @@ for name, values in dataset_df_reduced_rows.iteritems():
             if dataset_reduced_without_string[name][i] not in tab:
                 tab[dataset_reduced_without_string[name][i]] = compt
                 dataset_reduced_without_string[name][i] = compt
-                if name == 'GameName':
-                    dict_game[name] = compt
                 compt += 1
             else:
                 dataset_reduced_without_string[name][i] = tab[dataset_reduced_without_string[name][i]]
         else:
             break
-    print(len(tab))
+    dict_global[name] = tab
+
+###################################################################
+############################# Affichage ###########################
+###################################################################
+
+### Affichage du dictionnaire (Très gros)
+
+# UNCOMMENT
+# print(dict_global)
+
+### Affichage d'une des caractéristiques du dictionnaire (pour tester)
+
+print(dict_global['GameName'])
 
 ###################################################################
 ########################### Entrainement ##########################
@@ -135,15 +148,11 @@ print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scor
 # pas de l'intervale des fps. Ex : si pas = 10, alors de 0 à 10 fps, y deviendra 0, de 11 à 20, y deviendra 1
 pas = 10
 
-dataset_copy = dataset_reduced_without_string.copy()
-
-print(dataset_copy['target'])
-
+dataset_for_clasification = dataset_reduced_without_string.copy()
 for j in range(len(dataset_copy['target'])):
-    dataset_copy['target'][j] = trunc(dataset_copy['target'][j] / pas)
+    dataset_for_clasification['target'][j] = trunc(dataset_for_clasification['target'][j] - dataset_for_clasification['target'][j] % pas) + pas/2
 
-dataset_copy = dataset_copy.astype({'target': 'int32'})
-print(dataset_copy['target'])
+dataset_for_clasification = dataset_for_clasification.astype({'target': 'int32'}).reset_index().drop(columns=['index'])
 
 ##################################################################
 ####### Application arbre décision / régression logistique #######
@@ -170,17 +179,16 @@ print("Test set score: {:.2f} ".format(test_score_c))
 ############## Essai d'utiliser seulement un jeu #################
 ##################################################################
 
-dataset_copy = dataset_reduced_without_string.copy()
-dataset_reduced_without_string = dataset_reduced_without_string[dataset_reduced_without_string['GameName'] == dict_game['counterStrikeGlobalOffensive']]
-dataset_reduced_without_string = dataset_reduced_without_string.reset_index().drop(columns=['index'])
+for gameName in dict_global['GameName']:
+    dataset_copy = dataset_reduced_without_string.copy()
+    print("Jeu : " + gameName)
+    dataset_copy = dataset_copy[dataset_copy['GameName'] == dict_global['GameName'][gameName]]
+    dataset_copy = dataset_copy.sample(random_state=0, n=dataset_copy.shape[0])
+    X = dataset_copy.drop(columns=['target'])
+    y = dataset_copy['target']
+    pipeline = Pipeline([('transformer', scalar), ('estimator', LinearRegression())])
 
-print(dataset_copy)
-
-dataset_copy = dataset_copy.sample(random_state=0, n=dataset_copy.shape[0])
-X = dataset_copy.drop(columns=['target'])
-y = dataset_copy['target']
-pipeline = Pipeline([('transformer', scalar), ('estimator', LinearRegression())])
-
-scores = cross_val_score(pipeline, X, y, cv=20)
-print(scores)
-print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
+    scores = cross_val_score(pipeline, X, y, cv=10)
+    # Uncomment to see the score
+    # print(scores)
+    print("%0.2f de moyenne avec un écart-type de %0.2f" % (scores.mean(), scores.std()))
