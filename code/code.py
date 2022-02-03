@@ -19,6 +19,7 @@ from math import trunc
 from sklearn import tree
 from sklearn.linear_model import Ridge
 from sklearn.svm import SVC
+from sklearn.neural_network import MLPRegressor
 
 ###################################################################
 ########## Charge le dataset dans la variable dataset #############
@@ -105,12 +106,11 @@ print(dict_global['GameName'])
 
 dataset_copy = dataset_reduced_without_string.copy()
 dataset_copy = dataset_copy.sample(random_state=0, n=dataset_copy.shape[0])
+
+# LinearRegression simple
+
 X = dataset_copy.drop(columns=['target'])
 y = dataset_copy['target']
-
-#print(X.info())
-
-# Simple
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
@@ -123,7 +123,7 @@ lr = LinearRegression().fit(X_train,y_train)
 print("Training set score: {:.2f}".format(lr.score(X_train,y_train)))
 print("Test set score: {:.2f}".format(lr.score(X_test,y_test)))
 
-# plus complexe
+# LinearRegression cross_validation
 
 X = dataset_copy.drop(columns=['target'])
 y = dataset_copy['target']
@@ -135,6 +135,8 @@ print(scores)
 print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
 # print(lr.score(X_test, y_test))
 
+# Ridge cross_validation
+
 X = dataset_copy.drop(columns=['target'])
 y = dataset_copy['target']
 
@@ -144,11 +146,24 @@ scores = cross_val_score(pipeline, X, y, cv=20)
 print(scores)
 print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
 
+# SVC cross_validation
+
 X = dataset_copy.drop(columns=['target'])
 y = dataset_copy['target']
 
-clf = SVC(kernel='linear', C=1, random_state=42)
-scores = cross_val_score(clf, X, y, cv=5)
+pipeline = Pipeline([('transformer', scalar), ('estimator', SVC(kernel='linear', C=1, random_state=42))])
+
+scores = cross_val_score(pipeline, X, y, cv=5)
+print(scores)
+
+# MLPRegressor
+
+X = dataset_copy.drop(columns=['target'])
+y = dataset_copy['target']
+
+pipeline = Pipeline([('transformer', scalar), ('estimator', MLPRegressor(random_state=1, max_iter=500))])
+
+scores = cross_val_score(pipeline, X, y, cv=5)
 print(scores)
 
 ###################################################################
